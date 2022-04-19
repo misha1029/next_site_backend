@@ -25,7 +25,7 @@ export class UserService {
     return this.repository.findOne(id);
   }
 
-  findByCont(cont: LoginUserDTo) {
+  findByCond(cont: LoginUserDTo) {
     return this.repository.findOne(cont);
   }
 
