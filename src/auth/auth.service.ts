@@ -1,10 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class AuthService {
+  create(dto: CreateUserDto) {
+    throw new Error('Method not implemented.');
+  }
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
@@ -22,12 +26,28 @@ export class AuthService {
     return null;
   }
 
+  generetJwtToken(data: { id: number; email: string }) {
+    const payload = { email: data.email, sub: data.id };
+    return this.jwtService.sign(payload);
+  }
+
   async login(user: UserEntity) {
     const { password, ...userData } = user;
-    const payload = { email: user.email, sub: user.id };
     return {
       ...userData,
-      access_token: this.jwtService.sign(payload),
+      token: this.generetJwtToken(userData),
     };
+  }
+
+  async register(dto: CreateUserDto) {
+    try {
+      const { password, ...user } = await this.userService.create(dto);
+      return {
+        ...user,
+        token: this.generetJwtToken(user),
+      };
+    } catch (err) {
+      throw new ForbiddenException('Ощибка при регистрации');
+    }
   }
 }

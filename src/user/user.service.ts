@@ -3,11 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDTo } from './dto/login-user.dto';
+import { SearchUsertDto } from './dto/searchg-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UserService {
+  save(dto: CreateUserDto) {
+    throw new Error('Method not implemented.');
+  }
   constructor(
     @InjectRepository(UserEntity)
     private repository: Repository<UserEntity>,
@@ -29,11 +33,34 @@ export class UserService {
     return this.repository.findOne(cont);
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  update(id: number, dto: UpdateUserDto) {
+    return this.repository.update(id, dto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async search(dto: SearchUsertDto) {
+    const qb = this.repository.createQueryBuilder('u');
+
+    qb.limit(dto.limit || 0);
+    qb.take(dto.limit || 10);
+
+    if (dto.fullName) {
+      qb.andWhere(`u.fullName ILIKE :fullName`);
+    }
+
+    if (dto.email) {
+      qb.andWhere(`u.email ILIKE :email`);
+    }
+
+    qb.setParameters({
+      fullName: `%${dto.fullName}%`,
+      email: `%${dto.email}%`,
+    });
+
+    const [items, total] = await qb.getManyAndCount();
+
+    return {
+      items,
+      total,
+    };
   }
 }
