@@ -1,4 +1,4 @@
-export class SearchUsertDto {
+export class SearchUserDto {
   email?: string;
   fullName?: string;
   limit?: number;

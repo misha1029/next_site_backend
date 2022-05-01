@@ -12,7 +12,7 @@ import {
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { SearchUsertDto } from './dto/searchg-user.dto';
+import { SearchUserDto } from './dto/searchg-user.dto';
 
 @Controller('users')
 export class UserController {
@@ -26,7 +26,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   getProfile(@Request() req) {
-    return req.user;
+    return this.userService.findById(req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -36,7 +36,7 @@ export class UserController {
   }
 
   @Get('search')
-  search(@Query() dto: SearchUsertDto) {
+  search(@Query() dto: SearchUserDto) {
     return this.userService.search(dto);
   }
 

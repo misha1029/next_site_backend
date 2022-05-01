@@ -28,10 +28,10 @@ export class CommentEntity {
     nullable: false,
   })
   @JoinColumn({ name: 'postId' })
-  post: UserEntity;
+  post: PostEntity;
 
   @CreateDateColumn({ type: 'timestamp' })
-  createAt: Date;
+  createdAt: Date;
 
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -12,10 +16,6 @@ export class PostService {
     @InjectRepository(PostEntity)
     private repository: Repository<PostEntity>,
   ) {}
-
-  create(dto: CreatePostDto) {
-    return this.repository.save(dto);
-  }
 
   async popular() {
     const qb = this.repository.createQueryBuilder();
@@ -83,19 +83,48 @@ export class PostService {
     return this.repository.findOne(id);
   }
 
-  async update(id: number, dto: UpdatePostDto) {
-    const find = await this.repository.findOne(+id);
-    if (!find) {
-      throw new NotFoundException('Статья не найдена');
-    }
-    return this.repository.update(id, dto);
+  create(dto: CreatePostDto, userId: number) {
+    const firstParagraph = dto.body.find((obj) => obj.type === 'paragraph')
+      ?.data?.text;
+    return this.repository.save({
+      title: dto.title,
+      body: dto.body,
+      tags: dto.tags,
+      user: { id: userId },
+      description: firstParagraph || '',
+    });
   }
 
-  async remove(id: number) {
+  async update(id: number, dto: UpdatePostDto, userId: number) {
     const find = await this.repository.findOne(+id);
+
     if (!find) {
       throw new NotFoundException('Статья не найдена');
     }
+
+    const firstParagraph = dto.body.find((obj) => obj.type === 'paragraph')
+      ?.data?.text;
+
+    return this.repository.update(id, {
+      title: dto.title,
+      body: dto.body,
+      tags: dto.tags,
+      user: { id: userId },
+      description: firstParagraph || '',
+    });
+  }
+
+  async remove(id: number, userId: number) {
+    const find = await this.repository.findOne(+id);
+
+    if (!find) {
+      throw new NotFoundException('Статья не найдена');
+    }
+
+    if (find.user.id !== userId) {
+      throw new ForbiddenException('Нет доступа к этой статье!');
+    }
+
     return this.repository.delete(id);
   }
 }
